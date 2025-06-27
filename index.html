@@ -1,0 +1,880 @@
+import React, { useState, useContext, createContext, useMemo } from 'react';
+
+// --- ÍCONES TEMÁTICOS PARA ESTÉTICA (SVG) ---
+// (Todos os componentes de ícone permanecem os mesmos, então foram omitidos para maior clareza)
+const HomeIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>);
+const UsersIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>);
+const CalendarIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>);
+const SparklesIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m12 3-1.9 5.8-5.8 1.9 5.8 1.9 1.9 5.8 1.9-5.8 5.8-1.9-5.8-1.9z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>);
+const DollarSignIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>);
+const LogOutIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>);
+const XIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>);
+const PlusIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" /></svg>);
+const ChevronLeftIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>);
+const ChevronRightIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>);
+const Trash2Icon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>);
+const EditIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>);
+const SettingsIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 0 2l-.15.08a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l-.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1 0-2l.15-.08a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>);
+const BriefcaseIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>);
+const ClockIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>);
+const MessageSquareIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>);
+const SendIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>);
+const TagIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2H2v10l9.29 9.29c.94.94 2.48.94 3.42 0l6.58-6.58c.94-.94.94-2.48 0-3.42L12 2Z"/><path d="M7 7h.01"/></svg>);
+const ImageIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>);
+const MicIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>);
+const PaperclipIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>);
+const GiftIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 12v10H4V12"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>);
+const LayoutGridIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>);
+const ListIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>);
+const FileTextIcon = (props) => (<svg {...props} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>);
+
+
+// --- DADOS SIMULADOS PARA CLÍNICA DE ESTÉTICA ---
+const initialMockData = {
+    customers: [
+        { id: 1, name: 'Ana Silva', email: 'ana.silva@example.com', phone: '(11) 98765-4321', tags: ['VIP', 'Recorrente'], birthday: '1990-07-15', notes: 'Prefere agendar nas terças-feiras.' },
+        { id: 2, name: 'Beatriz Costa', email: 'beatriz.c@example.com', phone: '(21) 91234-5678', tags: ['Novo'], birthday: '1995-06-28', notes: '' },
+        { id: 3, name: 'Carla Dias', email: 'carla.dias@example.com', phone: '(31) 99999-8888', tags: ['Recorrente'], birthday: '1988-12-05', notes: '' },
+        { id: 4, name: 'Daniela Souza', email: 'daniela.s@example.com', phone: '(41) 98888-7777', tags: [], birthday: '2000-03-22', notes: 'Interesse em pacotes de verão.' },
+    ],
+    professionals: [
+        { id: 1, name: 'Luiza', color: 'bg-pink-400', serviceIds: [1, 3] },
+        { id: 2, name: 'Fernanda', color: 'bg-sky-400', serviceIds: [3, 4] },
+        { id: 3, name: 'Mariana', color: 'bg-emerald-400', serviceIds: [2, 4] }
+    ],
+    services: [
+        { id: 1, name: 'Limpeza de Pele', duration: 90, price: 180.00, description: 'Extração de cravos, hidratação e máscara facial.' },
+        { id: 2, name: 'Massagem Relaxante', duration: 60, price: 150.00, description: 'Técnicas para alívio de tensões e estresse.' },
+        { id: 3, name: 'Sobrancelhas', duration: 30, price: 50.00, description: 'Modelagem com pinça e linha.' },
+        { id: 4, name: 'Drenagem Linfática', duration: 60, price: 160.00, description: 'Redução de inchaço e eliminação de toxinas.' },
+    ],
+    appointments: [
+        { id: 1, customerId: 1, serviceId: 1, professionalId: 1, date: '2025-06-26', startTime: '10:00', status: 'Confirmado' },
+        { id: 2, customerId: 2, serviceId: 3, professionalId: 2, date: '2025-06-26', startTime: '14:00', status: 'Confirmado' },
+        { id: 3, customerId: 3, serviceId: 2, professionalId: 3, date: '2025-07-02', startTime: '16:00', status: 'Pendente' },
+        { id: 4, customerId: 1, serviceId: 4, professionalId: 3, date: '2025-07-04', startTime: '09:00', status: 'Confirmado' },
+        { id: 5, customerId: 2, serviceId: 4, professionalId: 2, date: '2025-07-01', startTime: '11:00', status: 'Confirmado' },
+        { id: 6, customerId: 3, serviceId: 1, professionalId: 1, date: '2025-06-30', startTime: '15:00', status: 'Confirmado' },
+    ],
+    anamnesisTemplate: [
+        { key: 'queixa_principal', label: 'Queixa Principal', type: 'textarea' },
+        { key: 'alergias', label: 'Alergias Conhecidas', type: 'text' },
+        { key: 'medicamentos', label: 'Medicamentos em Uso', type: 'text' },
+        { key: 'cosmeticos', label: 'Cosméticos em Uso', type: 'textarea' },
+        { key: 'historico_doencas', label: 'Histórico de Doenças', type: 'textarea' },
+        { key: 'gestante_lactante', label: 'É gestante ou lactante?', type: 'radio', options: ['Sim', 'Não', 'Não se aplica'] },
+        { key: 'exposicao_solar', label: 'Frequência de Exposição Solar', type: 'select', options: ['Nenhuma', 'Raramente', 'Moderadamente', 'Frequentemente'] },
+        { key: 'cuidados_pele', label: 'Rotina de Cuidados com a Pele', type: 'textarea' },
+    ],
+    anamnesis: [
+        { id: 1, appointmentId: 1, customerId: 1, date: '2025-06-26', data: { 'queixa_principal': 'Cravos e oleosidade excessiva', 'alergias': 'Nenhuma', 'medicamentos': 'Não utiliza', 'cuidados_pele': 'Lava com sabonete neutro', 'cosmeticos': 'Protetor Solar FPS 50', 'historico_doencas': 'Asma na infância', 'gestante_lactante': 'Não', 'exposicao_solar': 'Raramente' } },
+        { id: 2, appointmentId: 2, customerId: 2, date: '2025-06-26', data: { 'queixa_principal': 'Definir melhor o formato da sobrancelha', 'alergias': 'Nenhuma', 'medicamentos': 'Não utiliza', 'cuidados_pele': 'Nenhum', 'cosmeticos': '', 'historico_doencas': '', 'gestante_lactante': 'Não', 'exposicao_solar': 'Moderadamente' } },
+    ],
+    opportunities: [
+        { id: 1, title: 'Pacote Noiva Completo', customerId: 1, value: 1500, stage: 'Proposta' },
+        { id: 2, title: 'Plano Trimestral de Drenagem', customerId: 3, value: 1800, stage: 'Negociação' },
+        { id: 3, title: 'Tratamento Facial Rejuvenescedor', customerId: 2, value: 950, stage: 'Lead' },
+        { id: 4, title: 'Day Spa Relaxante', customerId: 4, value: 450, stage: 'Follow Up' },
+        { id: 5, title: 'Protocolo de Verão', customerId: 1, value: 2200, stage: 'Perdido' },
+    ],
+    conversations: [
+        {
+            customerId: 1,
+            tags: ["Interesse em Pacote", "VIP"],
+            unread: 1,
+            messages: [
+                { type: 'text', sender: 'customer', text: 'Olá! Gostaria de saber mais sobre o pacote para noivas.', time: '10:30' },
+                { type: 'text', sender: 'clinic', text: 'Olá, Ana! Claro, nosso Pacote Noiva Completo inclui limpeza de pele, massagem relaxante e design de sobrancelhas. Posso te enviar a apresentação?', time: '10:32' },
+                { type: 'file', sender: 'clinic', content: { name: 'Pacote_Noiva_EsteticaIO.pdf', size: '1.2 MB' }, time: '10:33' }
+            ]
+        },
+        {
+            customerId: 2,
+            tags: ["Dúvida Agendamento"],
+            unread: 0,
+            messages: [
+                { type: 'image', sender: 'customer', content: { url: 'https://placehold.co/300x200/FBCFE8/4a5568?text=Inspiração', caption: 'Queria a sobrancelha assim, é possível?' }, time: 'Ontem' },
+                { type: 'text', sender: 'clinic', text: 'Oi Beatriz! Linda referência! Sim, é totalmente possível. A Fernanda é especialista nesse estilo. Vamos agendar?', time: 'Ontem' },
+            ]
+        },
+        {
+            customerId: 4,
+            tags: [],
+            unread: 2,
+            messages: [
+                { type: 'audio', sender: 'customer', content: { duration: '0:12' }, time: '13:55' },
+            ]
+        }
+    ],
+    clinicInfo: {
+        name: 'Estética.IO',
+        phone: '(11) 5555-1234',
+        address: 'Rua das Flores, 123, São Paulo - SP',
+        workingHours: '08:00 - 19:00'
+    },
+    systemTags: [
+        { id: 1, name: 'VIP', color: 'bg-yellow-400' },
+        { id: 2, name: 'Recorrente', color: 'bg-blue-400' },
+        { id: 3, name: 'Novo', color: 'bg-green-400' },
+        { id: 4, name: 'Interesse em Pacote', color: 'bg-purple-400' },
+        { id: 5, name: 'Dúvida Agendamento', color: 'bg-indigo-400' },
+    ]
+};
+
+
+// --- CONTEXTOS GLOBAIS ---
+const DataContext = createContext(null);
+const AuthContext = createContext(null);
+const NotificationContext = createContext(null);
+const NavigationContext = createContext(null);
+
+const DataProvider = ({ children }) => { const [data, setData] = useState(initialMockData); const value = useMemo(() => ({ data, setData }), [data]); return <DataContext.Provider value={value}>{children}</DataContext.Provider>; }
+const AuthProvider = ({ children }) => { const [user, setUser] = useState(null); const login = async (email, password) => { if (email === "admin@estetica.com" && password === "1234") { setUser({ name: "Admin", email: "admin@estetica.com" }); return true; } return false; }; const logout = () => { setUser(null); }; const value = useMemo(() => ({ user, login, logout }), [user]); return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>; };
+const NotificationProvider = ({ children }) => { const [notification, setNotification] = useState(null); const showNotification = (message, type = 'success') => { setNotification({ message, type }); setTimeout(() => setNotification(null), 3000); }; return (<NotificationContext.Provider value={{ showNotification }}>{children}{notification && (<div className={`fixed bottom-20 sm:bottom-5 right-5 p-4 rounded-lg shadow-lg text-white animate-fade-in-fast z-[100] ${notification.type === 'success' ? 'bg-emerald-500' : 'bg-red-500'}`}>{notification.message}</div>)}</NotificationContext.Provider>);};
+const NavigationProvider = ({ children }) => { const [currentView, setCurrentView] = useState({ page: 'dashboard' }); const navigate = (view) => setCurrentView(view); return <NavigationContext.Provider value={{ currentView, navigate }}>{children}</NavigationContext.Provider>; };
+
+const useData = () => useContext(DataContext);
+const useAuth = () => useContext(AuthContext);
+const useNotification = () => useContext(NotificationContext);
+const useNavigation = () => useContext(NavigationContext);
+
+// --- COMPONENTES DE UI REUTILIZÁVEIS ---
+const Card = ({ children, className = '', ...props }) => (<div className={`bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 ${className}`} {...props}>{children}</div>);
+const Modal = ({ isOpen, onClose, title, children }) => { if (!isOpen) return null; return (<div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex justify-center items-center z-50 animate-fade-in-fast" onClick={onClose}><div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl w-full max-w-lg m-4 animate-slide-up" onClick={e => e.stopPropagation()}><div className="flex justify-between items-center p-4 border-b border-slate-200 dark:border-slate-700"><h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">{title}</h2><button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700"><XIcon className="h-5 w-5" /></button></div><div className="p-6">{children}</div></div></div>);};
+const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+    if (!isOpen) return null;
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={title}>
+            <div className="space-y-4">
+                <p className="text-slate-600 dark:text-slate-300">{message}</p>
+                <div className="flex justify-end gap-3 pt-4">
+                    <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg border">Cancelar</button>
+                    <button type="button" onClick={onConfirm} className="px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg">Confirmar</button>
+                </div>
+            </div>
+        </Modal>
+    );
+};
+const StatCard = ({ title, value, icon, color = 'pink' }) => (<Card className="p-4 flex items-center"><div className={`p-3 rounded-lg bg-${color}-100 dark:bg-${color}-500/20 mr-4`}>{React.cloneElement(icon, { className: `h-6 w-6 text-${color}-600 dark:text-${color}-400` })}</div><div><p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{title}</p><p className="text-xl md:text-2xl font-bold text-slate-800 dark:text-slate-100">{value}</p></div></Card>);
+
+// --- PÁGINAS DA APLICAÇÃO ---
+function DashboardPage() {
+    const { data } = useData();
+    const today = new Date('2025-06-26T12:00:00Z');
+    
+    const last7Days = Array.from({length: 7}, (_, i) => { const d = new Date(today); d.setDate(d.getDate() - i); return d.toISOString().split('T')[0]; }).reverse();
+    const revenueData = last7Days.map(date => { const revenue = data.appointments.filter(a => a.date === date).reduce((sum, a) => sum + (data.services.find(s => s.id === a.serviceId)?.price || 0), 0); return { date, revenue }; });
+    const maxRevenue = Math.max(...revenueData.map(d => d.revenue), 1);
+
+    const serviceCounts = data.appointments.reduce((acc, app) => { const service = data.services.find(s => s.id === app.serviceId); if(service) acc[service.name] = (acc[service.name] || 0) + 1; return acc; }, {});
+    const topServices = Object.entries(serviceCounts).sort((a, b) => b[1] - a[1]).slice(0, 3);
+
+    const upcomingBirthdays = data.customers.filter(c => { const birthDate = new Date(c.birthday); const todayMonth = today.getMonth(); const todayDay = today.getDate(); const birthMonth = birthDate.getMonth(); const birthDay = birthDate.getDate(); const nextWeek = new Date(today); nextWeek.setDate(today.getDate() + 7); return new Date(today.getFullYear(), birthMonth, birthDay) >= today && new Date(today.getFullYear(), birthMonth, birthDay) <= nextWeek; });
+
+    return (<div className="animate-fade-in"><h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-6">Dashboard</h1><div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <StatCard title="Agendamentos Hoje" value={data.appointments.filter(a => a.date === today.toISOString().split('T')[0]).length} icon={<CalendarIcon />} color="pink" />
+        <StatCard title="Receita do Mês" value={`R$ ${data.appointments.reduce((sum, app) => sum + (data.services.find(s => s.id === app.serviceId)?.price || 0), 0).toLocaleString('pt-BR')}`} icon={<DollarSignIcon />} color="emerald" />
+        <StatCard title="Ticket Médio" value={`R$ ${(data.appointments.reduce((sum, app) => sum + (data.services.find(s => s.id === app.serviceId)?.price || 0), 0) / data.appointments.length || 0).toFixed(2)}`} icon={<UsersIcon />} color="sky" />
+        <StatCard title="Taxa de Ocupação (dia)" value="75%" icon={<ClockIcon />} color="amber" />
+    </div><div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <Card className="p-4 sm:p-6 lg:col-span-2"><h2 className="text-lg sm:text-xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Receita da Semana</h2>
+            <div className="h-64 flex justify-around items-end gap-2">
+                {revenueData.map(({ date, revenue }) => (
+                    <div key={date} className="flex-1 flex flex-col items-center">
+                        <div className="w-full h-full flex items-end">
+                             <div className="w-full text-center group relative">
+                                <div className="bg-pink-200 dark:bg-pink-500/30 rounded-t-lg hover:bg-pink-400 dark:hover:bg-pink-500/60 transition-all" style={{ height: `${(revenue / maxRevenue) * 100 || 0}%` }}></div>
+                                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-2 py-1 rounded-md text-xs opacity-0 group-hover:opacity-100 transition-opacity">R$ {revenue.toFixed(2)}</div>
+                            </div>
+                        </div>
+                        <span className="text-xs text-slate-500 mt-2">{new Date(date + 'T12:00:00Z').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}</span>
+                    </div>
+                ))}
+            </div>
+        </Card>
+        <div className="flex flex-col gap-6">
+            <Card className="p-6 flex-1"><h2 className="text-lg sm:text-xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Top Serviços</h2><ul className="space-y-3">{topServices.map(([name, count]) => <li key={name} className="flex justify-between items-center text-sm"><span className="font-medium">{name}</span><span className="font-bold bg-slate-100 px-2 py-0.5 rounded-full">{count}</span></li>)}</ul></Card>
+            <Card className="p-6 flex-1"><h2 className="text-lg sm:text-xl font-semibold text-slate-700 dark:text-slate-200 mb-4">Aniversariantes</h2><ul className="space-y-3">{upcomingBirthdays.length > 0 ? upcomingBirthdays.map(c => <li key={c.id} className="flex justify-between items-center text-sm"><span className="font-medium">{c.name}</span><span className="text-slate-500 flex items-center gap-1"><GiftIcon className="h-4 w-4"/> {new Date(c.birthday+'T12:00:00Z').toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}</span></li>) : <p className="text-sm text-slate-400">Nenhum aniversário nos próximos 7 dias.</p>}</ul></Card>
+        </div>
+    </div></div>);
+}
+// --- HELPERS DA AGENDA ---
+const getDay = (date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+const getWeekDays = (date) => { const start = getDay(new Date(date)); start.setDate(start.getDate() - start.getDay()); return Array.from({ length: 7 }, (_, i) => { const d = new Date(start); d.setDate(d.getDate() + i); return d; }); };
+const getMonthDays = (date) => { const monthStart = new Date(date.getFullYear(), date.getMonth(), 1); const monthEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0); const startDate = getDay(new Date(monthStart)); startDate.setDate(startDate.getDate() - startDate.getDay()); const endDate = getDay(new Date(monthEnd)); endDate.setDate(endDate.getDate() + (6 - endDate.getDay())); const days = []; let current = new Date(startDate); while(current <= endDate) { days.push(new Date(current)); current.setDate(current.getDate() + 1); } return days; };
+
+
+function CalendarPage() {
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const [currentDate, setCurrentDate] = useState(new Date('2025-06-27T12:00:00Z'));
+    const [view, setView] = useState('month'); // day, week, month
+    const [isAppointmentModalOpen, setIsAppointmentModalOpen] = useState(false);
+    const [appointmentModalData, setAppointmentModalData] = useState(null);
+    const [isAnamnesisModalOpen, setIsAnamnesisModalOpen] = useState(false);
+    const [anamnesisModalData, setAnamnesisModalData] = useState(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    const changeDate = (amount) => { const newDate = new Date(currentDate); if(view === 'day') newDate.setDate(newDate.getDate() + amount); if(view === 'week') newDate.setDate(newDate.getDate() + (amount * 7)); if(view === 'month') newDate.setMonth(newDate.getMonth() + amount); setCurrentDate(newDate); };
+    const handleSaveAppointment = (appointment) => { if (appointment.id) { setData(p => ({...p, appointments: p.appointments.map(a => a.id === appointment.id ? appointment : a)})); showNotification("Agendamento atualizado!"); } else { setData(p => ({...p, appointments: [...p.appointments, { ...appointment, id: Date.now() }]})); showNotification("Agendamento criado!"); } setIsAppointmentModalOpen(false); setAppointmentModalData(null); };
+    const confirmDeleteAppointment = () => { if(deleteTargetId) { setData(p => ({...p, appointments: p.appointments.filter(a => a.id !== deleteTargetId)})); showNotification("Agendamento excluído!", 'error'); } setIsAppointmentModalOpen(false); setAppointmentModalData(null); setIsConfirmModalOpen(false); setDeleteTargetId(null); };
+    const requestDeleteAppointment = (id) => { setDeleteTargetId(id); setIsConfirmModalOpen(true); };
+    const handleSaveAnamnesis = (recordToSave) => { setData(prev => { const exists = prev.anamnesis.some(a => a.id === recordToSave.id); if (exists) { return { ...prev, anamnesis: prev.anamnesis.map(a => a.id === recordToSave.id ? recordToSave : a) }; } else { return { ...prev, anamnesis: [...prev.anamnesis, recordToSave] }; } }); showNotification("Ficha de anamnese salva!"); setIsAnamnesisModalOpen(false); setAnamnesisModalData(null); };
+    const handleCreateAnamnesis = (appointment) => { setIsAppointmentModalOpen(false); setAppointmentModalData(null); setAnamnesisModalData({ appointment: appointment, anamnesisRecord: null }); setIsAnamnesisModalOpen(true); };
+    
+    const renderCalendarView = () => {
+        switch(view) {
+            case 'day': return <DayView date={currentDate} onSlotClick={handleSlotClick} onAppointmentClick={handleAppointmentClick} />;
+            case 'week': return <WeekView date={currentDate} onSlotClick={handleSlotClick} onAppointmentClick={handleAppointmentClick} />;
+            case 'month': default: return <MonthView date={currentDate} onSlotClick={handleSlotClick} onAppointmentClick={handleAppointmentClick} />;
+        }
+    };
+
+    const handleSlotClick = (date, time) => { setAppointmentModalData({ type: 'add', appointment: { date: date.toISOString().split('T')[0], startTime: time } }); setIsAppointmentModalOpen(true); };
+    const handleAppointmentClick = (appointment) => { setAppointmentModalData({ type: 'details', appointment }); setIsAppointmentModalOpen(true); };
+    const getHeaderText = () => { if (view === 'day') return currentDate.toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long' }); if (view === 'week') { const weekDays = getWeekDays(currentDate); const start = weekDays[0]; const end = weekDays[6]; return `${start.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})} - ${end.toLocaleDateString('pt-BR', {day:'2-digit', month:'short'})}`; } return currentDate.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }); }
+
+    return (
+        <div className="animate-fade-in h-full flex flex-col">
+            <div className="flex-shrink-0 flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-4">
+                <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Agenda</h1>
+                <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-4">
+                     <div className="p-1 bg-slate-200 rounded-lg flex items-center">
+                        <button onClick={() => setView('day')} className={`px-2 sm:px-3 py-1 text-sm font-semibold rounded-md ${view === 'day' ? 'bg-white shadow' : 'text-slate-600'}`}>Dia</button>
+                        <button onClick={() => setView('week')} className={`px-2 sm:px-3 py-1 text-sm font-semibold rounded-md ${view === 'week' ? 'bg-white shadow' : 'text-slate-600'}`}>Semana</button>
+                        <button onClick={() => setView('month')} className={`px-2 sm:px-3 py-1 text-sm font-semibold rounded-md ${view === 'month' ? 'bg-white shadow' : 'text-slate-600'}`}>Mês</button>
+                    </div>
+                </div>
+            </div>
+            <div className="flex-shrink-0 flex items-center gap-2 mb-4 justify-center">
+                 <button onClick={() => changeDate(-1)} className="p-2 rounded-lg hover:bg-slate-100"><ChevronLeftIcon className="h-5 w-5"/></button>
+                 <span className="font-semibold text-center w-48">{getHeaderText()}</span>
+                 <button onClick={() => changeDate(1)} className="p-2 rounded-lg hover:bg-slate-100"><ChevronRightIcon className="h-5 w-5"/></button>
+            </div>
+            <Card className="p-1 sm:p-2 md:p-4 flex-grow overflow-auto">
+                {renderCalendarView()}
+            </Card>
+            <button onClick={() => handleSlotClick(new Date(), '09:00')} className="lg:hidden fixed bottom-20 right-5 bg-pink-500 hover:bg-pink-600 text-white font-bold h-14 w-14 rounded-full flex items-center justify-center shadow-lg z-40"><PlusIcon className="h-7 w-7"/></button>
+
+            {isAppointmentModalOpen && appointmentModalData?.type === 'add' && <AppointmentFormModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} onSave={handleSaveAppointment} appointment={appointmentModalData.appointment}/> }
+            {isAppointmentModalOpen && appointmentModalData?.type === 'details' && <AppointmentDetailsModal isOpen={isAppointmentModalOpen} onClose={() => setIsAppointmentModalOpen(false)} appointment={appointmentModalData.appointment} onEdit={(app) => { setAppointmentModalData({type: 'add', appointment: app }); }} onDelete={requestDeleteAppointment} onCreateAnamnesis={handleCreateAnamnesis} /> }
+            {isAnamnesisModalOpen && <AnamnesisFormModal isOpen={isAnamnesisModalOpen} onClose={() => setIsAnamnesisModalOpen(false)} onSave={handleSaveAnamnesis} anamnesisRecord={anamnesisModalData.anamnesisRecord} appointment={anamnesisModalData.appointment} /> }
+            <ConfirmationModal isOpen={isConfirmModalOpen} onClose={() => setIsConfirmModalOpen(false)} onConfirm={confirmDeleteAppointment} title="Excluir Agendamento" message="Tem certeza que deseja excluir este agendamento? Esta ação não pode ser desfeita."/>
+        </div>
+    );
+}
+
+const MonthView = ({ date, onSlotClick, onAppointmentClick }) => {
+    const { data } = useData();
+    const days = getMonthDays(date);
+    const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+    return (
+        <div className="grid grid-cols-7 h-full">
+            {weekDays.map((day, i) => <div key={i} className="text-center font-bold text-xs sm:text-sm p-2 border-b">{day}</div>)}
+            {days.map(day => {
+                const dayStr = day.toISOString().split('T')[0];
+                const appointments = data.appointments.filter(app => app.date === dayStr);
+                const isCurrentMonth = day.getMonth() === date.getMonth();
+                return (
+                    <div key={dayStr} onClick={() => onSlotClick(day, '09:00')} className={`border-t border-l p-1 sm:p-2 flex flex-col min-h-[60px] sm:min-h-[90px] md:min-h-[120px] ${isCurrentMonth ? 'bg-white' : 'bg-slate-50'} hover:bg-slate-100 cursor-pointer`}>
+                        <span className={`font-bold text-xs sm:text-base ${isCurrentMonth ? 'text-slate-700' : 'text-slate-400'}`}>{day.getDate()}</span>
+                        <div className="mt-1 space-y-1 overflow-y-auto">
+                            {appointments.slice(0, 2).map(app => {
+                                const professional = data.professionals.find(p => p.id === app.professionalId);
+                                return <div key={app.id} onClick={(e) => { e.stopPropagation(); onAppointmentClick(app); }} className={`p-0.5 sm:p-1 rounded text-[10px] sm:text-xs text-white truncate cursor-pointer ${professional?.color}`}>{data.services.find(s=>s.id === app.serviceId)?.name}</div>
+                            })}
+                                {appointments.length > 2 && <div className="text-xs text-slate-500 font-bold mt-1">+ {appointments.length - 2} mais</div>}
+                        </div>
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
+
+const WeekView = ({ date, onSlotClick, onAppointmentClick }) => {
+    const { data } = useData();
+    const weekDays = getWeekDays(date);
+
+    return (
+        <div className="md:hidden flex flex-col space-y-4">
+            {weekDays.map(day => {
+                 const dayStr = day.toISOString().split('T')[0];
+                 const appointments = data.appointments.filter(app => app.date === dayStr).sort((a,b) => a.startTime.localeCompare(b.startTime));
+                 return (
+                     <div key={dayStr}>
+                         <h3 className="font-bold p-2 border-b">{day.toLocaleDateString('pt-BR', {weekday: 'long', day: '2-digit'})}</h3>
+                         <div className="space-y-2 p-2">
+                             {appointments.length > 0 ? appointments.map(app => {
+                                 const service = data.services.find(s => s.id === app.serviceId);
+                                 const professional = data.professionals.find(p => p.id === app.professionalId);
+                                 const customer = data.customers.find(c => c.id === app.customerId);
+                                 return <div key={app.id} onClick={() => onAppointmentClick(app)} className={`p-2 rounded-lg text-white text-sm cursor-pointer ${professional?.color}`}>
+                                     <p className="font-bold">{app.startTime} - {service?.name}</p>
+                                     <p className="text-xs">{customer?.name}</p>
+                                 </div>
+                             }) : <p className="text-sm text-slate-400 p-2">Nenhum agendamento.</p>}
+                         </div>
+                     </div>
+                 )
+            })}
+        </div>
+    );
+};
+
+const DayView = ({ date, onAppointmentClick }) => {
+    const { data } = useData();
+    const dayStr = date.toISOString().split('T')[0];
+    const appointmentsForDay = data.appointments.filter(app => app.date === dayStr).sort((a,b) => a.startTime.localeCompare(b.startTime));
+    
+    return (
+        <div className="space-y-2 p-2">
+         {appointmentsForDay.length > 0 ? appointmentsForDay.map(app => {
+             const service = data.services.find(s => s.id === app.serviceId);
+             const professional = data.professionals.find(p => p.id === app.professionalId);
+             const customer = data.customers.find(c => c.id === app.customerId);
+             return <div key={app.id} onClick={() => onAppointmentClick(app)} className={`p-3 rounded-lg text-white cursor-pointer ${professional?.color}`}>
+                 <p className="font-bold text-lg">{app.startTime} - {service?.name}</p>
+                 <p>Com: {professional?.name}</p>
+                 <p>Cliente: {customer?.name}</p>
+             </div>
+         }) : <p className="text-center text-slate-500 p-8">Nenhum agendamento para este dia.</p>}
+        </div>
+    )
+};
+
+
+function AppointmentFormModal({ isOpen, onClose, onSave, appointment }) {
+    const { data } = useData();
+    const [formData, setFormData] = useState({ id: appointment?.id || null, customerId: appointment?.customerId || data.customers[0]?.id, professionalId: appointment?.professionalId || data.professionals[0]?.id, serviceId: appointment?.serviceId || '', date: appointment?.date || new Date().toISOString().split('T')[0], startTime: appointment?.startTime || '', status: appointment?.status || 'Confirmado' });
+
+    const handleChange = (e) => { const { name, value } = e.target; setFormData(prev => ({...prev, [name]: name === 'customerId' || name === 'professionalId' || name === 'serviceId' ? Number(value) : value })); }
+    const professionalServices = data.services.filter(s => data.professionals.find(p => p.id === formData.professionalId)?.serviceIds.includes(s.id));
+    const timeToMinutes = (timeStr) => { if(!timeStr) return 0; const [h, m] = timeStr.split(':'); return Number(h) * 60 + Number(m); };
+    const availableSlots = useMemo(() => { if (!formData.professionalId || !formData.date || !formData.serviceId) return []; const allSlots = Array.from({ length: 22 }, (_, i) => { const hour = String(Math.floor(i / 2) + 8).padStart(2, '0'); const minute = i % 2 === 0 ? '00' : '30'; return `${hour}:${minute}`; }); const professionalAppointmentsOnDate = data.appointments.filter(app => app.professionalId === formData.professionalId && app.date === formData.date && app.id !== formData.id); const busySlots = []; professionalAppointmentsOnDate.forEach(app => { const service = data.services.find(s => s.id === app.serviceId); if (!service) return; const start = timeToMinutes(app.startTime); const end = start + service.duration; busySlots.push({ start, end }); }); const serviceDuration = data.services.find(s => s.id === formData.serviceId)?.duration || 0; return allSlots.filter(slot => { const slotStart = timeToMinutes(slot); const slotEnd = slotStart + serviceDuration; if (slotEnd > timeToMinutes("19:00")) return false; return !busySlots.some(busy => slotStart < busy.end && slotEnd > busy.start); });}, [formData.professionalId, formData.date, formData.serviceId, data.appointments, data.services, formData.id]);
+    const handleSubmit = (e) => { e.preventDefault(); if(!formData.serviceId || !formData.startTime){ alert("Por favor, selecione um serviço e um horário válido."); return;} onSave(formData); };
+    
+    React.useEffect(() => { setFormData(prev => ({ ...prev, serviceId: professionalServices[0]?.id || '', startTime: '' })); }, [formData.professionalId]);
+    React.useEffect(() => { setFormData(prev => ({...prev, startTime: ''})); }, [formData.date, formData.serviceId]);
+
+    return (<Modal isOpen={isOpen} onClose={onClose} title={appointment?.id ? "Editar Agendamento" : "Novo Agendamento"}><form onSubmit={handleSubmit} className="space-y-4">
+        <div><label>Profissional</label><select name="professionalId" value={formData.professionalId} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md">{data.professionals.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></div>
+        <div><label>Serviço</label><select name="serviceId" value={formData.serviceId} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md">{professionalServices.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label>Data</label><input type="date" name="date" value={formData.date} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md" /></div>
+            <div><label>Horário</label><select name="startTime" value={formData.startTime} onChange={handleChange} disabled={!formData.serviceId} className="mt-1 block w-full p-2 border rounded-md">{appointment?.id && !availableSlots.includes(appointment.startTime) && <option value={appointment.startTime}>{appointment.startTime}</option>}{availableSlots.length > 0 ? availableSlots.map(slot => <option key={slot} value={slot}>{slot}</option>) : <option>Nenhum horário</option>}</select></div>
+        </div>
+        <div><label>Cliente</label><select name="customerId" value={formData.customerId} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md">{data.customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+        <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg border">Cancelar</button><button type="submit" disabled={!formData.startTime} className="px-4 py-2 text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 rounded-lg disabled:bg-pink-300">Salvar</button></div>
+        </form></Modal>);
+}
+
+function AppointmentDetailsModal({ isOpen, onClose, appointment, onEdit, onDelete, onCreateAnamnesis }) {
+    const { data } = useData();
+    const customer = data.customers.find(c => c.id === appointment.customerId);
+    const service = data.services.find(s => s.id === appointment.serviceId);
+    const professional = data.professionals.find(p => p.id === appointment.professionalId);
+    const anamnesisExists = data.anamnesis.some(a => a.appointmentId === appointment.id);
+
+    if (!isOpen) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Detalhes do Agendamento">
+            <div className="space-y-4">
+                <p><strong>Cliente:</strong> {customer?.name}</p>
+                <p><strong>Serviço:</strong> {service?.name}</p>
+                <p><strong>Profissional:</strong> {professional?.name}</p>
+                <p><strong>Data:</strong> {new Date(appointment.date + 'T12:00:00Z').toLocaleDateString('pt-BR')}</p>
+                <p><strong>Horário:</strong> {appointment.startTime}</p>
+                <p><strong>Status:</strong> <span className="px-2 py-1 text-xs bg-slate-200 rounded-full">{appointment.status}</span></p>
+                <div className="pt-4 border-t space-y-3">
+                    {!anamnesisExists && (
+                        <button type="button" onClick={() => onCreateAnamnesis(appointment)} className="w-full px-4 py-2 text-sm font-medium text-white bg-green-500 hover:bg-green-600 rounded-lg flex items-center justify-center gap-2">
+                            <FileTextIcon className="h-4 w-4" /> Criar Anamnese
+                        </button>
+                    )}
+                    <div className="flex justify-end gap-3 w-full">
+                        <button type="button" onClick={() => onEdit(appointment)} className="flex-1 px-4 py-2 text-sm font-medium rounded-lg border flex items-center justify-center gap-2"><EditIcon className="h-4 w-4" /> Editar</button>
+                        <button type="button" onClick={() => onDelete(appointment.id)} className="flex-1 px-4 py-2 text-sm font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg flex items-center justify-center gap-2"><Trash2Icon className="h-4 w-4" /> Excluir</button>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+    );
+}
+// --- PÁGINA ANAMNESE ---
+function AnamnesisPage() {
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState(null);
+
+    const handleViewRecord = (record) => { setSelectedRecord(record); setIsModalOpen(true); };
+    const handleSaveAnamnesis = (recordToSave) => { setData(prev => { const exists = prev.anamnesis.some(a => a.id === recordToSave.id); if (exists) { return { ...prev, anamnesis: prev.anamnesis.map(a => a.id === recordToSave.id ? recordToSave : a) }; } else { return { ...prev, anamnesis: [...prev.anamnesis, recordToSave] }; } }); showNotification("Ficha de anamnese salva com sucesso!"); setIsModalOpen(false); setSelectedRecord(null); };
+    
+    return (
+        <div className="animate-fade-in">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-6">Fichas de Anamnese</h1>
+            {/* Mobile View: List of Cards */}
+            <div className="md:hidden space-y-4">
+                {data.anamnesis.map(record => {
+                    const appointment = data.appointments.find(a => a.id === record.appointmentId);
+                    const customer = data.customers.find(c => c.id === appointment?.customerId);
+                    const service = data.services.find(s => s.id === appointment?.serviceId);
+                    return (
+                        <Card key={record.id} className="p-4" onClick={() => handleViewRecord(record)}>
+                            <p className="font-bold">{customer?.name}</p>
+                            <p className="text-sm text-slate-600">{service?.name}</p>
+                            <p className="text-sm text-slate-500 mt-1">{new Date(record.date + 'T12:00:00Z').toLocaleDateString('pt-BR')}</p>
+                        </Card>
+                    )
+                })}
+            </div>
+             {/* Desktop View: Table */}
+            <Card className="hidden md:block">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead><tr className="border-b"><th className="p-4">DATA</th><th className="p-4">CLIENTE</th><th className="p-4">PROCEDIMENTO</th><th className="p-4">PROFISSIONAL</th><th className="p-4">AÇÕES</th></tr></thead>
+                        <tbody>{data.anamnesis.map(record => { const appointment = data.appointments.find(a => a.id === record.appointmentId); const customer = data.customers.find(c => c.id === appointment?.customerId); const service = data.services.find(s => s.id === appointment?.serviceId); const professional = data.professionals.find(p => p.id === appointment?.professionalId); return (<tr key={record.id} className="border-b hover:bg-slate-50"><td className="p-4">{new Date(record.date + 'T12:00:00Z').toLocaleDateString('pt-BR')}</td><td className="p-4 font-medium">{customer?.name}</td><td className="p-4">{service?.name}</td><td className="p-4">{professional?.name}</td><td className="p-4"><button onClick={() => handleViewRecord(record)} className="p-2 text-slate-500 hover:text-pink-600"><FileTextIcon className="h-5 w-5"/></button></td></tr>);})}</tbody>
+                    </table>
+                </div>
+            </Card>
+            {isModalOpen && <AnamnesisFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveAnamnesis} anamnesisRecord={selectedRecord} />}
+        </div>
+    );
+}
+
+function AnamnesisFormModal({ isOpen, onClose, onSave, anamnesisRecord, appointment }) {
+    const { data } = useData();
+    const [formData, setFormData] = useState({});
+    const linkedAppointment = useMemo(() => appointment || data.appointments.find(a => a.id === anamnesisRecord?.appointmentId), [appointment, anamnesisRecord, data.appointments]);
+    const customer = useMemo(() => data.customers.find(c => c.id === linkedAppointment?.customerId), [linkedAppointment, data.customers]);
+    const service = useMemo(() => data.services.find(s => s.id === linkedAppointment?.serviceId), [linkedAppointment, data.services]);
+
+    React.useEffect(() => { if (anamnesisRecord) { setFormData(anamnesisRecord.data || {}); } else { const emptyData = data.anamnesisTemplate.reduce((acc, field) => { acc[field.key] = ''; return acc; }, {}); setFormData(emptyData); } }, [anamnesisRecord, data.anamnesisTemplate, isOpen]);
+    const handleChange = (key, value) => { setFormData(prev => ({...prev, [key]: value})); };
+    const handleSubmit = (e) => { e.preventDefault(); const recordToSave = { id: anamnesisRecord?.id || Date.now(), appointmentId: linkedAppointment.id, customerId: linkedAppointment.customerId, date: linkedAppointment.date, data: formData }; onSave(recordToSave); };
+
+    if (!isOpen || !linkedAppointment || !customer || !service) return null;
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title={`Anamnese - ${service.name}`}>
+            <div className="mb-4 border-b pb-4">
+                <p><strong>Cliente:</strong> {customer.name}</p>
+                <p><strong>Data:</strong> {new Date(linkedAppointment.date + 'T12:00:00Z').toLocaleDateString('pt-BR')}</p>
+            </div>
+            <form onSubmit={handleSubmit}>
+                <div className="space-y-4 max-h-[60vh] overflow-y-auto p-1">
+                    {data.anamnesisTemplate.map(field => (
+                        <div key={field.key}>
+                            <label className="font-semibold text-sm text-slate-700">{field.label}</label>
+                            {field.type === 'textarea' && <textarea name={field.key} value={formData[field.key] || ''} onChange={(e) => handleChange(field.key, e.target.value)} rows="3" className="mt-1 block w-full p-2 border rounded-md"/>}
+                            {field.type === 'text' && <input type="text" name={field.key} value={formData[field.key] || ''} onChange={(e) => handleChange(field.key, e.target.value)} className="mt-1 block w-full p-2 border rounded-md"/>}
+                            {field.type === 'radio' && <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:gap-4">{field.options.map(opt => <label key={opt} className="flex items-center gap-2"><input type="radio" name={field.key} value={opt} checked={formData[field.key] === opt} onChange={(e) => handleChange(field.key, e.target.value)} className="h-4 w-4 text-pink-500 focus:ring-pink-500"/>{opt}</label>)}</div>}
+                            {field.type === 'select' && <select name={field.key} value={formData[field.key] || ''} onChange={(e) => handleChange(field.key, e.target.value)} className="mt-1 block w-full p-2 border rounded-md"><option value="">Selecione...</option>{field.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}</select>}
+                        </div>
+                    ))}
+                </div>
+                <div className="flex justify-end gap-3 pt-4 border-t mt-4">
+                    <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border">Fechar</button>
+                    <button type="submit" className="px-4 py-2 text-white bg-pink-500 hover:bg-pink-600 rounded-lg">Salvar Ficha</button>
+                </div>
+            </form>
+        </Modal>
+    );
+}
+
+function CustomersPage() { 
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const { navigate } = useNavigation();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingCustomer, setEditingCustomer] = useState(null);
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+    const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+    const handleSaveCustomer = (customer) => { if (customer.id) { setData(p => ({ ...p, customers: p.customers.map(c => c.id === customer.id ? customer : c) })); showNotification("Cliente atualizado!"); } else { setData(p => ({ ...p, customers: [...p.customers, { ...customer, id: Date.now() }] })); showNotification("Cliente adicionado!"); } setIsModalOpen(false); setEditingCustomer(null); };
+    const confirmDeleteCustomer = () => { if(deleteTargetId) { setData(p => ({ ...p, customers: p.customers.filter(c => c.id !== deleteTargetId), appointments: p.appointments.filter(a => a.customerId !== deleteTargetId) })); showNotification("Cliente excluído!", 'error'); } setIsConfirmModalOpen(false); setDeleteTargetId(null); };
+    const requestDeleteCustomer = (id) => { setDeleteTargetId(id); setIsConfirmModalOpen(true); };
+
+    return (<div className="animate-fade-in"><div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4"><h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Clientes</h1><button onClick={() => { setEditingCustomer(null); setIsModalOpen(true); }} className="w-full sm:w-auto bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2"><PlusIcon className="h-5 w-5"/> Adicionar Cliente</button></div>
+    {/* Mobile View */}
+    <div className="md:hidden space-y-3">
+        {data.customers.map(customer => (
+            <Card key={customer.id} className="p-4 flex justify-between items-start">
+                <div onClick={() => navigate({ page: 'customerProfile', customerId: customer.id })}>
+                    <p className="font-bold">{customer.name}</p>
+                    <p className="text-sm text-slate-500">{customer.email}</p>
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                    <button onClick={(e) => { e.stopPropagation(); setEditingCustomer(customer); setIsModalOpen(true); }} className="p-2 text-slate-500 hover:text-sky-600"><EditIcon className="h-5 w-5"/></button>
+                    <button onClick={(e) => { e.stopPropagation(); requestDeleteCustomer(customer.id)}} className="p-2 text-slate-500 hover:text-red-600"><Trash2Icon className="h-5 w-5"/></button>
+                </div>
+            </Card>
+        ))}
+    </div>
+    {/* Desktop View */}
+    <Card className="hidden md:block"><div className="overflow-x-auto"><table className="w-full text-left"><thead><tr className="border-b"><th className="p-4">CLIENTE</th><th className="p-4">CONTATO</th><th className="p-4">AÇÕES</th></tr></thead><tbody>{data.customers.map(customer => (<tr key={customer.id} className="border-b hover:bg-slate-50">
+        <td className="p-4 font-medium"><a href="#" onClick={(e) => { e.preventDefault(); navigate({ page: 'customerProfile', customerId: customer.id }) }} className="hover:text-pink-600">{customer.name}</a></td>
+        <td className="p-4 text-slate-600">{customer.email}<br/><span className="text-xs">{customer.phone}</span></td>
+        <td className="p-4 flex gap-2"><button onClick={() => { setEditingCustomer(customer); setIsModalOpen(true); }} className="p-2 text-slate-500 hover:text-sky-600"><EditIcon className="h-5 w-5"/></button><button onClick={() => requestDeleteCustomer(customer.id)} className="p-2 text-slate-500 hover:text-red-600"><Trash2Icon className="h-5 w-5"/></button></td>
+    </tr>))}</tbody></table></div></Card>
+    {isModalOpen && <CustomerFormModal onClose={() => setIsModalOpen(false)} onSave={handleSaveCustomer} customer={editingCustomer} />}
+    <ConfirmationModal isOpen={isConfirmModalOpen} onClose={() => setIsConfirmModalOpen(false)} onConfirm={confirmDeleteCustomer} title="Excluir Cliente" message="Tem certeza que deseja excluir este cliente e todos os seus agendamentos? Esta ação não pode ser desfeita."/>
+    </div>);
+}
+
+function CustomerFormModal({ onClose, onSave, customer }) {
+    const { data } = useData();
+    const [formData, setFormData] = useState({ id: customer?.id || null, name: customer?.name || '', email: customer?.email || '', phone: customer?.phone || '', birthday: customer?.birthday || '', tags: customer?.tags || [] });
+    const handleTagChange = (tagName) => { setFormData(prev => { const newTags = prev.tags.includes(tagName) ? prev.tags.filter(t => t !== tagName) : [...prev.tags, tagName]; return { ...prev, tags: newTags }; }); };
+    const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
+    return (<Modal isOpen={true} onClose={onClose} title={customer ? 'Editar Cliente' : 'Novo Cliente'}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+            <div><label>Nome</label><input name="name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="mt-1 block w-full p-2 border rounded-md"/></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div><label>Email</label><input name="email" type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} required className="mt-1 block w-full p-2 border rounded-md"/></div>
+                <div><label>Telefone</label><input name="phone" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="mt-1 block w-full p-2 border rounded-md"/></div>
+            </div>
+            <div><label>Data de Nascimento</label><input name="birthday" type="date" value={formData.birthday} onChange={e => setFormData({...formData, birthday: e.target.value})} className="mt-1 block w-full p-2 border rounded-md"/></div>
+            <div><label>Tags</label><div className="flex flex-wrap gap-2 mt-1 border p-2 rounded-md">{data.systemTags.map(tag => ( <label key={tag.id} className="flex items-center gap-2 text-sm cursor-pointer"><input type="checkbox" checked={formData.tags.includes(tag.name)} onChange={() => handleTagChange(tag.name)} className="h-4 w-4 rounded text-pink-500 focus:ring-pink-500" />{tag.name}</label>))}</div></div>
+            <div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border">Cancelar</button><button type="submit" className="px-4 py-2 text-white bg-pink-500 hover:bg-pink-600 rounded-lg">Salvar</button></div>
+        </form>
+    </Modal>);
+}
+
+function CustomerProfilePage({ customerId }) {
+    const { data, setData } = useData();
+    const { navigate } = useNavigation();
+    const { showNotification } = useNotification();
+    const [isAnamnesisModalOpen, setIsAnamnesisModalOpen] = useState(false);
+    const [selectedAnamnesis, setSelectedAnamnesis] = useState(null);
+
+    const customer = data.customers.find(c => c.id === customerId);
+    const customerAppointments = data.appointments.filter(a => a.customerId === customerId);
+    const customerAnamnesis = data.anamnesis.filter(an => an.customerId === customerId);
+
+    const handleViewAnamnesis = (record) => { setSelectedAnamnesis(record); setIsAnamnesisModalOpen(true); };
+    const handleSaveAnamnesis = (recordToSave) => { setData(prev => { const exists = prev.anamnesis.some(a => a.id === recordToSave.id); if (exists) { return { ...prev, anamnesis: prev.anamnesis.map(a => a.id === recordToSave.id ? recordToSave : a) }; } else { return { ...prev, anamnesis: [...prev.anamnesis, recordToSave] }; } }); showNotification("Ficha de anamnese salva!"); setIsAnamnesisModalOpen(false); setSelectedAnamnesis(null); };
+    
+    if (!customer) return <div>Cliente não encontrado. <button onClick={() => navigate({page: 'customers'})}>Voltar</button></div>;
+    
+    return (<div className="animate-fade-in"><button onClick={() => navigate({page: 'customers'})} className="flex items-center gap-2 text-sm text-slate-500 mb-4 hover:text-slate-800"><ChevronLeftIcon className="h-4 w-4"/> Voltar para Clientes</button><div className="flex flex-wrap items-center gap-2 sm:gap-4 mb-6"><h1 className="text-2xl sm:text-3xl font-bold text-slate-800 w-full sm:w-auto">{customer.name}</h1>{customer.tags.map(tag => <span key={tag} className="px-2 py-0.5 text-xs font-semibold rounded-full bg-pink-100 text-pink-800">{tag}</span>)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="p-6 md:col-span-1">
+                <h2 className="text-xl font-semibold mb-4">Detalhes</h2>
+                <p><strong>Email:</strong> {customer.email}</p>
+                <p><strong>Telefone:</strong> {customer.phone}</p>
+                <p><strong>Aniversário:</strong> {new Date(customer.birthday+'T12:00:00Z').toLocaleDateString('pt-BR')}</p>
+                <div className="mt-4"><h3 className="font-semibold mb-2">Observações</h3><p className="text-sm text-slate-600 bg-slate-50 p-2 rounded-md">{customer.notes || "Nenhuma observação."}</p></div>
+            </Card>
+            <div className="md:col-span-2 space-y-6">
+                <Card className="p-6"><h2 className="text-xl font-semibold mb-4">Histórico de Agendamentos</h2><ul className="space-y-2">{customerAppointments.map(app => { const service = data.services.find(s => s.id === app.serviceId); const prof = data.professionals.find(p => p.id === app.professionalId); return (<li key={app.id} className="p-2 bg-slate-50 rounded-md"><strong>{service?.name}</strong> com {prof?.name} em {new Date(app.date+'T12:00:00Z').toLocaleDateString('pt-BR')}</li>)})}</ul></Card>
+                <Card className="p-6"><h2 className="text-xl font-semibold mb-4">Fichas de Anamnese</h2><ul className="space-y-2">{customerAnamnesis.length > 0 ? customerAnamnesis.map(record => { const appointment = data.appointments.find(a => a.id === record.appointmentId); const service = data.services.find(s => s.id === appointment?.serviceId); return (<li key={record.id} className="p-2 bg-slate-50 rounded-md flex justify-between items-center"><span>{service?.name} - {new Date(record.date+'T12:00:00Z').toLocaleDateString('pt-BR')}</span><button onClick={() => handleViewAnamnesis(record)} className="text-sm text-pink-600 hover:underline">Ver ficha</button></li>) }) : <p className="text-sm text-slate-400">Nenhuma ficha encontrada.</p>}</ul></Card>
+            </div>
+        </div>
+        {isAnamnesisModalOpen && <AnamnesisFormModal isOpen={isAnamnesisModalOpen} onClose={() => setIsAnamnesisModalOpen(false)} onSave={handleSaveAnamnesis} anamnesisRecord={selectedAnamnesis}/>}
+    </div>);
+}
+
+const OpportunityListView = () => {
+    const { data } = useData();
+    return (
+        <Card className="h-full overflow-y-auto">
+            <table className="w-full text-left">
+                <thead>
+                    <tr className="border-b">
+                        <th className="p-4">OPORTUNIDADE</th>
+                        <th className="p-4 hidden sm:table-cell">CLIENTE</th>
+                        <th className="p-4">VALOR</th>
+                        <th className="p-4 hidden sm:table-cell">ETAPA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {data.opportunities.map(op => {
+                        const cust = data.customers.find(c => c.id === op.customerId);
+                        return (
+                            <tr key={op.id} className="border-b hover:bg-slate-50">
+                                <td className="p-4">
+                                    <p className="font-semibold">{op.title}</p>
+                                    <p className="sm:hidden text-xs text-slate-500">{cust?.name} - {op.stage}</p>
+                                </td>
+                                <td className="p-4 hidden sm:table-cell">{cust?.name}</td>
+                                <td className="p-4">R$ {op.value.toLocaleString('pt-BR')}</td>
+                                <td className="p-4 hidden sm:table-cell"><span className="px-2 py-1 text-xs bg-slate-200 rounded-full">{op.stage}</span></td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+        </Card>
+    );
+};
+
+function SalesPipelinePage() {
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingOpp, setEditingOpp] = useState(null);
+    const [draggingOppId, setDraggingOppId] = useState(null);
+    const [viewMode, setViewMode] = useState('kanban');
+
+    const stages = ['Lead', 'Follow Up', 'Proposta', 'Negociação', 'Fechado', 'Perdido'];
+
+    const handleSaveOpportunity = (opportunity) => { if (opportunity.id) { setData(p => ({ ...p, opportunities: p.opportunities.map(o => o.id === opportunity.id ? opportunity : o) })); showNotification("Oportunidade atualizada!"); } else { setData(p => ({ ...p, opportunities: [{ ...opportunity, id: Date.now(), stage: 'Lead' }, ...p.opportunities] })); showNotification("Oportunidade criada!"); } setIsModalOpen(false); setEditingOpp(null); };
+    const handleDeleteOpportunity = (id) => { setData(p => ({ ...p, opportunities: p.opportunities.filter(o => o.id !== id) })); showNotification("Oportunidade excluída!", 'error'); };
+    const handleDragStart = (e, id) => { e.dataTransfer.setData("opportunityId", id); setDraggingOppId(id); };
+    const handleDrop = (e, targetStage) => { const id = Number(e.dataTransfer.getData("opportunityId")); setData(p => ({ ...p, opportunities: p.opportunities.map(o => o.id === id ? { ...o, stage: targetStage } : o) })); setDraggingOppId(null); };
+
+    return (
+    <div className="h-full flex flex-col animate-fade-in">
+        <div className="flex-shrink-0 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Funil de Vendas</h1>
+            <div className="flex items-center gap-2 self-end">
+                <div className="hidden md:flex items-center rounded-lg border border-slate-300 shadow-sm">
+                    <button onClick={() => setViewMode('kanban')} className={`p-2 rounded-l-md transition-colors ${viewMode === 'kanban' ? 'bg-pink-500 text-white' : 'bg-white hover:bg-slate-50'}`}><LayoutGridIcon className="h-5 w-5"/></button>
+                    <button onClick={() => setViewMode('list')} className={`p-2 rounded-r-md transition-colors border-l ${viewMode === 'list' ? 'bg-pink-500 text-white' : 'bg-white hover:bg-slate-50'}`}><ListIcon className="h-5 w-5"/></button>
+                </div>
+                <button onClick={() => { setEditingOpp(null); setIsModalOpen(true); }} className="bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2"><PlusIcon className="h-5 w-5"/> Criar</button>
+            </div>
+        </div>
+
+        {/* Mobile View: List Only */}
+        <div className="md:hidden flex-grow overflow-y-auto">
+            <OpportunityListView />
+        </div>
+
+        {/* Desktop View: Toggleable */}
+        <div className="hidden md:flex flex-grow flex-col">
+            {viewMode === 'kanban' ? (
+                <div className="flex-grow grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 pb-4 overflow-x-auto">
+                    {stages.map(stage => (
+                        <div key={stage} onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, stage)} className="flex-shrink-0 w-full bg-slate-100 rounded-lg p-3 flex flex-col">
+                            <div className="flex justify-between items-center mb-2 px-1">
+                                <h2 className="font-bold text-slate-700">{stage}</h2>
+                                <span className="text-sm font-medium text-slate-500">{data.opportunities.filter(op => op.stage === stage).length}</span>
+                            </div>
+                            <p className="text-sm font-bold text-slate-500 px-1 mb-3">R$ {data.opportunities.filter(op => op.stage === stage).reduce((sum, o) => sum + o.value, 0).toLocaleString('pt-BR')}</p>
+                            <div className="space-y-3 h-full overflow-y-auto pr-1">
+                                {data.opportunities.filter(op => op.stage === stage).map(op => { 
+                                    const customer = data.customers.find(c => c.id === op.customerId); 
+                                    return (<OpportunityCard key={op.id} opportunity={op} customer={customer} isDragging={draggingOppId === op.id} onDragStart={(e) => handleDragStart(e, op.id)} onEdit={() => { setEditingOpp(op); setIsModalOpen(true); }} onDelete={() => handleDeleteOpportunity(op.id)} />)
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="flex-grow overflow-y-auto">
+                    <OpportunityListView />
+                </div>
+            )}
+        </div>
+
+        {isModalOpen && <OpportunityFormModal onClose={() => setIsModalOpen(false)} onSave={handleSaveOpportunity} opportunity={editingOpp} customers={data.customers} />}
+    </div>
+    );
+}
+
+const OpportunityCard = ({ opportunity, customer, isDragging, onDragStart, onEdit, onDelete }) => {
+    const { navigate } = useNavigation();
+    const { data } = useData();
+    const customerTags = data.systemTags.filter(tag => customer.tags.includes(tag.name));
+
+    return (
+        <Card draggable onDragStart={onDragStart} className={`p-4 group cursor-grab transition-all ${isDragging ? 'opacity-50 scale-95' : 'hover:shadow-md'}`}>
+            <div className="flex justify-between items-start mb-2"><h3 className="font-semibold text-slate-800">{opportunity.title}</h3><div className="flex opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={onEdit} className="p-1 text-slate-400 hover:text-sky-600"><EditIcon className="h-4 w-4"/></button><button onClick={onDelete} className="p-1 text-slate-400 hover:text-red-600"><Trash2Icon className="h-4 w-4"/></button></div></div>
+            <div className="flex items-center gap-2 mb-3"><img className="h-6 w-6 rounded-full object-cover bg-slate-200" src={`https://placehold.co/40x40/f0abfc/4a5568?text=${customer.name.charAt(0)}`} alt={customer.name} /><p className="text-sm text-slate-600">{customer?.name}</p></div>
+            <div className="flex flex-wrap gap-1 mb-3">{customerTags.map(tag => (<span key={tag.id} className={`px-2 py-0.5 text-xs font-semibold rounded-full text-white ${tag.color}`}>{tag.name}</span>))}</div>
+            <p className="text-lg font-bold text-emerald-600 mb-3">R$ {opportunity.value.toLocaleString('pt-BR')}</p>
+            <div className="flex gap-2 border-t pt-2"><button onClick={() => navigate({ page: 'chat', customerId: customer.id })} className="flex-1 text-xs text-slate-600 p-1.5 rounded-md hover:bg-slate-100 flex items-center justify-center gap-1.5"><MessageSquareIcon className="h-4 w-4"/> Chat</button><button onClick={() => navigate({ page: 'customerProfile', customerId: customer.id })} className="flex-1 text-xs text-slate-600 p-1.5 rounded-md hover:bg-slate-100 flex items-center justify-center gap-1.5"><UsersIcon className="h-4 w-4"/> Perfil</button></div>
+        </Card>
+    );
+}
+
+function OpportunityFormModal({ onClose, onSave, opportunity, customers }) {
+    const [formData, setFormData] = useState({ id: opportunity?.id || null, title: opportunity?.title || '', value: opportunity?.value || '', customerId: opportunity?.customerId || customers[0]?.id, });
+    const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleSubmit = (e) => { e.preventDefault(); onSave({ ...formData, value: Number(formData.value), customerId: Number(formData.customerId) }); };
+    return (<Modal isOpen={true} onClose={onClose} title={opportunity ? "Editar Oportunidade" : "Nova Oportunidade"}><form onSubmit={handleSubmit} className="space-y-4"><div><label>Título</label><input name="title" value={formData.title} onChange={handleChange} required className="mt-1 block w-full p-2 border rounded-md"/></div><div><label>Valor (R$)</label><input name="value" type="number" value={formData.value} onChange={handleChange} required className="mt-1 block w-full p-2 border rounded-md"/></div><div><label>Cliente</label><select name="customerId" value={formData.customerId} onChange={handleChange} className="mt-1 block w-full p-2 border rounded-md">{customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div><div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 rounded-lg border">Cancelar</button><button type="submit" className="px-4 py-2 text-white bg-pink-500 hover:bg-pink-600 rounded-lg">Salvar</button></div></form></Modal>);
+}
+
+function SettingsPage() {
+    // This page has many actions that would need confirmation modals.
+    // For brevity in this refactor, the window.confirm calls are left,
+    // but they would be replaced by the ConfirmationModal component.
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const [editingProf, setEditingProf] = useState(null);
+    const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
+    const [editingService, setEditingService] = useState(null);
+    const [newTagName, setNewTagName] = useState("");
+    const [clinicInfo, setClinicInfo] = useState(data.clinicInfo);
+    
+    const handleAddProfessional = () => { const name = prompt("Nome do novo profissional:"); if (name) { setData(p => ({...p, professionals: [...p.professionals, { id: Date.now(), name, color: 'bg-gray-400', serviceIds: [] }]})); showNotification("Profissional adicionado!"); }};
+    const handleDeleteProfessional = (id) => { if(window.confirm("Tem certeza?")){ setData(p => ({...p, professionals: p.professionals.filter(prof => prof.id !== id) })); showNotification("Profissional excluído!", 'error'); }};
+    const handleSaveProfServices = (profId, selectedServiceIds) => { setData(p => ({ ...p, professionals: p.professionals.map(prof => prof.id === profId ? { ...prof, serviceIds: selectedServiceIds } : prof)})); setEditingProf(null); showNotification("Serviços atualizados!"); };
+    const handleSaveService = (service) => { if (service.id) { setData(p => ({ ...p, services: p.services.map(s => s.id === service.id ? service : s) })); showNotification("Serviço atualizado!"); } else { setData(p => ({ ...p, services: [...p.services, { ...service, id: Date.now() }] })); showNotification("Serviço adicionado!"); } setIsServiceModalOpen(false); setEditingService(null); };
+    const handleDeleteService = (id) => { if (window.confirm("Tem certeza?")) { setData(p => ({ ...p, services: p.services.filter(s => s.id !== id) })); showNotification("Serviço excluído!", 'error'); } };
+    const handleAddTag = (e) => { e.preventDefault(); if (newTagName.trim()) { setData(p => ({...p, systemTags: [...p.systemTags, {id: Date.now(), name: newTagName, color: 'bg-gray-400'}]})); setNewTagName(""); showNotification("Tag adicionada!");}};
+    const handleDeleteTag = (id) => { if(window.confirm("Tem certeza?")){ setData(p => ({...p, systemTags: p.systemTags.filter(t => t.id !== id)})); showNotification("Tag removida!", 'error'); }};
+    const handleClinicInfoChange = (e) => setClinicInfo(p => ({...p, [e.target.name]: e.target.value}));
+    const handleSaveClinicInfo = (e) => { e.preventDefault(); setData(p => ({...p, clinicInfo})); showNotification("Informações da clínica salvas!"); };
+
+    return (<div className="animate-fade-in space-y-8"><h1 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Configurações</h1>
+        <Card className="p-4 sm:p-6"><h2 className="text-xl font-semibold mb-4">Informações da Clínica</h2><form onSubmit={handleSaveClinicInfo} className="space-y-4"><div className="grid grid-cols-1 md:grid-cols-2 gap-4"><div><label>Nome da Clínica</label><input name="name" value={clinicInfo.name} onChange={handleClinicInfoChange} className="mt-1 w-full p-2 border rounded-md"/></div><div><label>Telefone</label><input name="phone" value={clinicInfo.phone} onChange={handleClinicInfoChange} className="mt-1 w-full p-2 border rounded-md"/></div></div><div><label>Endereço</label><input name="address" value={clinicInfo.address} onChange={handleClinicInfoChange} className="mt-1 w-full p-2 border rounded-md"/></div><div className="flex justify-end"><button type="submit" className="bg-pink-500 text-white font-bold py-2 px-4 rounded-lg">Salvar Informações</button></div></form></Card>
+        <Card className="p-4 sm:p-6"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-semibold">Profissionais</h2><button onClick={handleAddProfessional} className="bg-pink-500 text-white font-bold py-1 px-3 text-sm rounded-lg flex items-center gap-2"><PlusIcon className="h-4 w-4"/> Adicionar</button></div><div className="space-y-4">{data.professionals.map(prof => (<div key={prof.id} className="p-4 border rounded-lg flex flex-col sm:flex-row justify-between sm:items-start gap-4"><div><h3 className="font-bold text-lg flex items-center gap-2"><span className={`w-4 h-4 rounded-full ${prof.color}`}></span>{prof.name}</h3><div className="mt-2"><h4 className="font-semibold text-sm mb-1">Serviços:</h4><div className="flex flex-wrap gap-2">{data.services.filter(s => prof.serviceIds.includes(s.id)).map(s => <span key={s.id} className="px-2 py-1 text-xs bg-slate-200 rounded-full">{s.name}</span>)}</div></div></div><div className="flex gap-2 self-end sm:self-start"><button onClick={() => setEditingProf(prof)} className="p-2 text-slate-500 hover:text-sky-600"><EditIcon className="h-5 w-5"/></button><button onClick={() => handleDeleteProfessional(prof.id)} className="p-2 text-slate-500 hover:text-red-600"><Trash2Icon className="h-5 w-5"/></button></div></div>))}</div></Card>
+        <Card className="p-4 sm:p-6"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-semibold">Serviços</h2><button onClick={() => { setEditingService(null); setIsServiceModalOpen(true); }} className="bg-pink-500 text-white font-bold py-1 px-3 text-sm rounded-lg flex items-center gap-2"><PlusIcon className="h-4 w-4"/> Adicionar</button></div><div className="space-y-2">{data.services.map(service => (<div key={service.id} className="p-3 border-b flex justify-between items-center"><div><p className="font-semibold">{service.name}</p><p className="text-sm text-slate-500">R$ {service.price.toFixed(2)} - {service.duration} min</p></div><div className="flex gap-2"><button onClick={() => {setEditingService(service); setIsServiceModalOpen(true);}} className="p-2 text-slate-500 hover:text-sky-600"><EditIcon className="h-5 w-5"/></button><button onClick={() => handleDeleteService(service.id)} className="p-2 text-slate-500 hover:text-red-600"><Trash2Icon className="h-5 w-5"/></button></div></div>))}</div></Card>
+        <Card className="p-4 sm:p-6"><h2 className="text-xl font-semibold mb-4">Gestão de Tags</h2><form onSubmit={handleAddTag} className="flex gap-2 mb-4"><input value={newTagName} onChange={e => setNewTagName(e.target.value)} placeholder="Nova tag..." className="flex-grow p-2 border rounded-md"/><button type="submit" className="bg-pink-500 text-white font-bold py-2 px-4 rounded-lg">Adicionar</button></form><div className="flex flex-wrap gap-2">{data.systemTags.map(tag => (<span key={tag.id} className={`px-3 py-1 text-sm font-semibold rounded-full text-white flex items-center gap-2 ${tag.color}`}>{tag.name}<button onClick={()=>handleDeleteTag(tag.id)} className="text-white/70 hover:text-white"><XIcon className="h-3 w-3"/></button></span>))}</div></Card>
+        {editingProf && <EditServicesModal professional={editingProf} allServices={data.services} onClose={() => setEditingProf(null)} onSave={handleSaveProfServices}/>}
+        {isServiceModalOpen && <ServiceFormModal onClose={() => setIsServiceModalOpen(false)} onSave={handleSaveService} service={editingService}/>}
+    </div>);
+}
+function EditServicesModal({ professional, allServices, onClose, onSave }){
+    const [selectedIds, setSelectedIds] = useState(professional.serviceIds);
+    const handleSelect = (serviceId) => { setSelectedIds(p => p.includes(serviceId) ? p.filter(id => id !== serviceId) : [...p, serviceId]); };
+    const handleSave = () => { onSave(professional.id, selectedIds); };
+    return (<Modal isOpen={true} onClose={onClose} title={`Editar serviços de ${professional.name}`}><div className="space-y-2">{allServices.map(service => (<label key={service.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 cursor-pointer"><input type="checkbox" checked={selectedIds.includes(service.id)} onChange={() => handleSelect(service.id)} className="h-4 w-4 rounded text-pink-500 focus:ring-pink-500" /><span>{service.name}</span></label>))}</div><div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg border">Cancelar</button><button onClick={handleSave} type="button" className="px-4 py-2 text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 rounded-lg">Salvar</button></div></Modal>);
+}
+
+function ServiceFormModal({ onClose, onSave, service }) {
+    const [formData, setFormData] = useState({ id: service?.id || null, name: service?.name || '', duration: service?.duration || 60, price: service?.price || 0 });
+    const handleChange = (e) => { const { name, value } = e.target; setFormData(p => ({ ...p, [name]: name === 'duration' || name === 'price' ? Number(value) : value })); }
+    const handleSubmit = (e) => { e.preventDefault(); onSave(formData); };
+    return (<Modal isOpen={true} onClose={onClose} title={service ? 'Editar Serviço' : 'Novo Serviço'}><form onSubmit={handleSubmit} className="space-y-4"><div><label>Nome do Serviço</label><input name="name" value={formData.name} onChange={handleChange} required className="mt-1 block w-full p-2 border rounded-md"/></div><div className="grid grid-cols-2 gap-4"><div><label>Duração (min)</label><input name="duration" type="number" value={formData.duration} onChange={handleChange} required className="mt-1 block w-full p-2 border rounded-md"/></div><div><label>Preço (R$)</label><input name="price" type="number" step="0.01" value={formData.price} onChange={handleChange} required className="mt-1 block w-full p-2 border rounded-md"/></div></div><div className="flex justify-end gap-3 pt-4"><button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-lg border">Cancelar</button><button type="submit" className="px-4 py-2 text-sm font-medium text-white bg-pink-500 hover:bg-pink-600 rounded-lg">Salvar</button></div></form></Modal>);
+}
+function ChatPage() {
+    const { data, setData } = useData();
+    const { showNotification } = useNotification();
+    const { navigate, currentView } = useNavigation();
+    const [selectedCustomerId, setSelectedCustomerId] = useState(currentView.customerId || null);
+    const [newMessage, setNewMessage] = useState("");
+    const [customerNotes, setCustomerNotes] = useState("");
+
+    const selectedConversation = data.conversations.find(c => c.customerId === selectedCustomerId);
+    const customer = data.customers.find(c => c.id === selectedCustomerId);
+    
+    React.useEffect(() => { if(currentView.page === 'chat' && currentView.customerId) { setSelectedCustomerId(currentView.customerId); } }, [currentView]);
+    React.useEffect(() => { if (customer) { setCustomerNotes(customer.notes || ""); } else { setCustomerNotes("") } }, [customer]);
+    
+    const opportunities = data.opportunities.filter(o => o.customerId === selectedCustomerId);
+
+    const handleSendMessage = (e) => { e.preventDefault(); if (newMessage.trim() === "") return; const updatedConversations = data.conversations.map(c => c.customerId === selectedCustomerId ? { ...c, unread: 0, messages: [...c.messages, { type: 'text', sender: 'clinic', text: newMessage, time: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) }] } : c ); setData(p => ({ ...p, conversations: updatedConversations })); setNewMessage("");};
+    const handleCreateOpportunity = () => { const title = prompt("Título da oportunidade:"); if (title) { const newOpp = { id: Date.now(), title, customerId: selectedCustomerId, value: 0, stage: 'Lead' }; setData(p => ({ ...p, opportunities: [newOpp, ...p.opportunities] })); showNotification("Nova oportunidade criada!"); }};
+    const handleTagChange = (tagName) => { const newTags = customer.tags.includes(tagName) ? customer.tags.filter(t => t !== tagName) : [...customer.tags, tagName]; setData(p => ({...p, customers: p.customers.map(c => c.id === selectedCustomerId ? {...c, tags: newTags} : c)})); showNotification("Tags atualizadas!"); };
+    const handleSaveNotes = () => { setData(p => ({...p, customers: p.customers.map(c => c.id === selectedCustomerId ? {...c, notes: customerNotes} : c)})); showNotification("Observações salvas!"); };
+    const getStageColorClass = (stage) => { switch(stage) { case 'Fechado': return 'bg-emerald-500'; case 'Perdido': return 'bg-red-500'; default: return 'bg-slate-400'; } }
+
+    // Mobile logic: show list or chat, not both.
+    if (!selectedCustomerId) {
+         return (
+             <div className="animate-fade-in h-full flex flex-col">
+                 <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-4 flex-shrink-0">Conversas</h1>
+                 <Card className="flex-grow overflow-y-auto">
+                     {data.conversations.map(convo => { 
+                         const cust = data.customers.find(c => c.id === convo.customerId);
+                         return (
+                             <div key={cust.id} onClick={() => setSelectedCustomerId(cust.id)} className="p-4 border-b cursor-pointer hover:bg-slate-50">
+                                 <div className="flex justify-between items-center">
+                                     <h3 className="font-semibold">{cust.name}</h3>
+                                     {convo.unread > 0 && <span className="bg-pink-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">{convo.unread}</span>}
+                                 </div>
+                                 <p className="text-sm text-slate-500 truncate">{convo.messages[convo.messages.length - 1].text || "Mídia"}</p>
+                             </div>
+                         );
+                     })}
+                 </Card>
+             </div>
+         );
+    }
+    return (<div className="animate-fade-in h-full flex flex-col lg:flex-row gap-6">
+        <button onClick={() => setSelectedCustomerId(null)} className="lg:hidden flex items-center gap-2 text-sm text-slate-500 mb-2 hover:text-slate-800"><ChevronLeftIcon className="h-4 w-4"/> Voltar para Conversas</button>
+        {selectedConversation && customer && (
+            <>
+                <Card className="w-full lg:w-3/5 h-full flex flex-col"><div className="p-4 border-b flex-shrink-0"><h2 className="font-bold text-lg">{customer.name}</h2></div><div className="p-4 flex-grow overflow-y-auto bg-slate-50 space-y-4">{selectedConversation.messages.map((msg, index) => (<MessageBubble key={index} message={msg} />))}</div><form onSubmit={handleSendMessage} className="p-2 sm:p-4 border-t flex gap-2"><div className="flex-grow flex items-center bg-white border rounded-lg px-2"><input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Sua mensagem..." className="w-full p-2 bg-transparent focus:outline-none" /><button type="button" className="p-2 text-slate-500 hover:text-pink-500"><PaperclipIcon/></button></div><button type="submit" className="p-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600"><SendIcon className="h-5 w-5"/></button></form></Card>
+                <Card className="hidden lg:flex w-full lg:w-2/5 h-full flex-col p-4 overflow-y-auto space-y-4">
+                    <h3 className="font-bold text-lg">Detalhes do Contato</h3>
+                    <div><h4 className="font-semibold text-sm mb-2">Tags</h4><div className="flex flex-wrap gap-2">{data.systemTags.map(tag => (<button key={tag.id} onClick={()=>handleTagChange(tag.name)} className={`px-2 py-1 text-xs rounded-full border-2 ${customer.tags.includes(tag.name) ? 'border-pink-500 bg-pink-100' : 'border-transparent bg-slate-100 hover:bg-slate-200'}`}>{tag.name}</button>))}</div></div>
+                    <div><h4 className="font-semibold text-sm mb-1">Observações</h4><textarea value={customerNotes} onChange={e => setCustomerNotes(e.target.value)} rows="4" className="w-full p-2 border rounded-md text-sm" placeholder="Adicione uma nota..."></textarea><button onClick={handleSaveNotes} className="w-full mt-1 bg-slate-200 text-slate-700 text-sm font-bold py-1.5 rounded-lg hover:bg-slate-300">Salvar</button></div>
+                    <div className="border-t"></div>
+                    <div><h3 className="font-bold text-lg mb-2">Oportunidades</h3><div className="space-y-2 mb-4">{opportunities.length > 0 ? opportunities.map(opp => (<div key={opp.id} className="p-2 bg-slate-100 rounded-md text-sm"><div className="flex items-center gap-2"><span className={`w-2 h-2 rounded-full ${getStageColorClass(opp.stage)}`}></span><p className="font-semibold">{opp.title}</p></div><p className="pl-4 text-slate-600">R$ {opp.value} - {opp.stage}</p></div>)) : <p className="text-sm text-slate-500">Nenhuma oportunidade.</p>}</div><button onClick={handleCreateOpportunity} className="w-full bg-emerald-500 text-white text-sm font-bold py-2 rounded-lg hover:bg-emerald-600">Criar Oportunidade</button></div>
+                    <div className="border-t"></div>
+                    <button onClick={() => navigate({ page: 'customerProfile', customerId: customer.id })} className="w-full text-pink-600 hover:underline text-sm font-semibold mt-1">Ver Perfil Completo</button>
+                </Card>
+            </>
+        )}
+    </div>);
+}
+const MessageBubble = ({ message }) => {
+    const isClinic = message.sender === 'clinic';
+    const bubbleClass = isClinic ? 'bg-pink-500 text-white' : 'bg-white shadow-sm';
+    const wrapperClass = isClinic ? 'justify-end' : 'justify-start';
+    const renderContent = () => { switch (message.type) { case 'image': return <div className="p-2"><img src={message.content.url} alt={message.content.caption} className="rounded-lg max-w-xs" /><p className="pt-2 text-sm">{message.content.caption}</p></div>; case 'audio': return <div className="flex items-center gap-2 p-3"><button className="p-2 bg-white/30 rounded-full"><ChevronRightIcon className="h-4 w-4" /></button><span>Áudio</span><span className="text-xs text-white/70">{message.content.duration}</span></div>; case 'file': return <div className="flex items-center gap-3 p-3 bg-white/20 rounded-lg"><PaperclipIcon className="h-6 w-6"/><div className="text-sm"> <p className="font-bold">{message.content.name}</p><p>{message.content.size}</p></div></div>; default: return <p className="p-3">{message.text}</p>; } };
+    return (<div className={`flex ${wrapperClass}`}><div className={`rounded-2xl max-w-md ${bubbleClass}`}>{renderContent()}<p className={`text-xs px-3 pb-2 text-right ${isClinic ? 'text-pink-100' : 'text-slate-400'}`}>{message.time}</p></div></div>);
+};
+
+// --- LAYOUT DA APLICAÇÃO ---
+const Sidebar = ({ navigate }) => {
+    const { logout, user } = useAuth();
+    const { currentView } = useNavigation();
+    const navItems = [ { name: 'Dashboard', icon: <HomeIcon className="h-5 w-5"/>, page: 'dashboard' }, { name: 'Chat', icon: <MessageSquareIcon className="h-5 w-5"/>, page: 'chat' }, { name: 'Agenda', icon: <CalendarIcon className="h-5 w-5"/>, page: 'calendar' }, { name: 'Clientes', icon: <UsersIcon className="h-5 w-5"/>, page: 'customers' }, { name: 'Vendas', icon: <BriefcaseIcon className="h-5 w-5"/>, page: 'sales' }, { name: 'Anamnese', icon: <FileTextIcon className="h-5 w-5" />, page: 'anamnesis'}, { name: 'Configurações', icon: <SettingsIcon className="h-5 w-5"/>, page: 'settings' }, ];
+    return (<div className="flex flex-col h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700"><div className="flex items-center justify-center h-20 border-b border-slate-200 flex-shrink-0"><SparklesIcon className="h-8 w-8 text-pink-500" /><h1 className="text-2xl font-bold ml-2 text-slate-800 dark:text-white">Estética.IO</h1></div><nav className="flex-grow px-4 py-6"><ul>{navItems.map(item => (<li key={item.name}><a href="#" onClick={(e) => { e.preventDefault(); navigate({ page: item.page }); }} className={`flex items-center px-4 py-3 my-1 rounded-lg transition-all duration-200 group ${currentView.page === item.page ? 'bg-pink-500 text-white shadow' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'}`}><div className="group-hover:scale-110 transition-transform">{item.icon}</div><span className="ml-4">{item.name}</span></a></li>))}</ul></nav><div className="p-4 border-t border-slate-200 flex-shrink-0"><div className="flex items-center mb-4"><img className="h-10 w-10 rounded-full object-cover bg-slate-200" src={`https://placehold.co/100x100/f0abfc/4a5568?text=${user.name.charAt(0)}`} alt="User avatar" /><div className="ml-3"><p className="text-sm font-semibold text-slate-800 dark:text-white">{user.name}</p><p className="text-xs text-slate-500 dark:text-slate-400">{user.email}</p></div></div><button onClick={logout} className="w-full flex items-center justify-center px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-100"><LogOutIcon className="h-5 w-5"/><span className="ml-3">Sair</span></button></div></div>);
+};
+
+const MobileBottomNav = ({ navigate }) => {
+    const { currentView } = useNavigation();
+    const navItems = [
+        { name: 'Dashboard', icon: <HomeIcon />, page: 'dashboard' },
+        { name: 'Agenda', icon: <CalendarIcon />, page: 'calendar' },
+        { name: 'Chat', icon: <MessageSquareIcon />, page: 'chat' },
+        { name: 'Clientes', icon: <UsersIcon />, page: 'customers' },
+        { name: 'Vendas', icon: <BriefcaseIcon />, page: 'sales' },
+    ];
+    return (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-slate-200 flex justify-around items-center z-40">
+            {navItems.map(item => (
+                <button key={item.name} onClick={() => navigate({ page: item.page })} className={`flex flex-col items-center justify-center gap-1 w-1/5 h-full ${currentView.page === item.page ? 'text-pink-500' : 'text-slate-500'}`}>
+                    {React.cloneElement(item.icon, {className: 'h-6 w-6'})}
+                    <span className="text-[10px] font-medium">{item.name}</span>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+const AppLayout = () => {
+    const { currentView, navigate } = useNavigation();
+    const renderPage = () => {
+        switch (currentView.page) {
+            case 'calendar': return <CalendarPage />;
+            case 'customers': return <CustomersPage />;
+            case 'customerProfile': return <CustomerProfilePage customerId={currentView.customerId} />;
+            case 'sales': return <SalesPipelinePage />;
+            case 'anamnesis': return <AnamnesisPage />;
+            case 'chat': return <ChatPage />;
+            case 'settings': return <SettingsPage />;
+            case 'dashboard': default: return <DashboardPage />;
+        }
+    };
+    return (<div className="flex h-screen bg-slate-50 dark:bg-slate-900 text-slate-800 font-sans">
+        <div className="hidden lg:block lg:w-64 flex-shrink-0"><Sidebar navigate={navigate} /></div>
+        <main className="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-auto pb-20 lg:pb-8">{renderPage()}</main>
+        <MobileBottomNav navigate={navigate} />
+    </div>);
+}
+
+// --- PÁGINA DE LOGIN ---
+function LoginPage() {
+    const { login } = useAuth();
+    const [email, setEmail] = useState('admin@estetica.com');
+    const [password, setPassword] = useState('1234');
+    const [error, setError] = useState('');
+    const handleSubmit = async (e) => { e.preventDefault(); setError(''); const success = await login(email, password); if (!success) { setError('Email ou senha inválidos.'); }};
+    return (<div className="flex items-center justify-center min-h-screen bg-slate-100 p-4"><Card className="w-full max-w-sm p-8 space-y-8 shadow-lg"><div className="text-center"><SparklesIcon className="mx-auto h-10 w-auto text-pink-500" /><h2 className="mt-6 text-2xl font-bold tracking-tight text-slate-900">Acesse sua conta</h2></div><form className="space-y-6" onSubmit={handleSubmit}>{error && <div className="p-3 bg-red-100 text-sm text-red-700 rounded-lg">{error}</div>}<div><label htmlFor="email" className="text-sm font-medium text-slate-700">Email</label><input id="email" type="email" required value={email} onChange={e => setEmail(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" /></div><div><label htmlFor="password"  className="text-sm font-medium text-slate-700">Senha</label><input id="password" type="password" required value={password} onChange={e => setPassword(e.target.value)} className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:ring-pink-500 focus:border-pink-500" /></div><div className="text-xs text-center text-slate-500"><p>Use <strong>admin@estetica.com</strong> e senha <strong>1234</strong></p></div><button type="submit" className="w-full py-2.5 px-4 text-white bg-pink-500 hover:bg-pink-600 rounded-lg font-semibold text-center transition-all">Entrar</button></form></Card></div>);
+}
+
+// --- COMPONENTE PRINCIPAL ---
+export default function App() { return (<AuthProvider><DataProvider><NotificationProvider><NavigationProvider><Root /></NavigationProvider></NotificationProvider></DataProvider></AuthProvider>); }
+function Root() { const { user } = useAuth(); return user ? <AppLayout /> : <LoginPage />; }
